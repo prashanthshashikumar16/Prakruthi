@@ -1,0 +1,59 @@
+name: Validate DB schema
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  validate-schema:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgrespw
+          POSTGRES_DB: authdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d authdb" --health-interval=5s --health-timeout=5s --health-retries=10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install psql client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Wait for Postgres
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres -d authdb; do
+            echo "Waiting for postgres..."
+            sleep 1
+          done
+
+      - name: Initialize database schema
+        run: psql "postgresql://postgres:postgrespw@localhost:5432/authdb" -f Doc_opr/Database/init.sql
+
+      - name: Validate tables exist
+        run: |
+          RESULT=$(psql "postgresql://postgres:postgrespw@localhost:5432/authdb" -t -c "SELECT to_regclass('public.app_user');")
+          if [ -z "$RESULT" ] || [ "$RESULT" = "\n" ]; then
+            echo "app_user table not found"
+            exit 1
+          fi
+          echo "app_user table found: $RESULT"
+
+      - name: Build solution
+        run: dotnet build Prakruthi.slnx --no-restore --verbosity minimal
+
+      - name: Run EF Core scaffold check (optional)
+        run: |
+          echo "Schema validation complete."

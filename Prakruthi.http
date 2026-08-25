@@ -1,0 +1,6 @@
+@Prakruthi_HostAddress = http://localhost:5101
+
+GET {{Prakruthi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,9 @@
+**/bin/
+**/obj/
+**/.vs/
+**/*.user
+**/*.suo
+**/*.pfx
+.vscode/
+node_modules/
+wwwroot/node_modules/

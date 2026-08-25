@@ -1,0 +1,28 @@
+# Visual Studio
+.vs/
+bin/
+obj/
+
+# Build outputs
+**/bin/
+**/obj/
+
+# User-specific
+*.user
+*.suo
+
+# Secrets
+.secrets/
+Doc_opr/Secrets/
+
+# Node modules
+wwwroot/node_modules/
+
+# Certificates
+*.pfx
+
+# IDE
+.vscode/
+
+# Misc
+*.vsix
